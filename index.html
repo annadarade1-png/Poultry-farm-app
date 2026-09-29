@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="hi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1f6b3a"><link rel="manifest" href="manifest.json">
+<title>Poultry Farm Hisaab</title>
+<style>
+body{margin:0;background:#f3f7f2;font-family:Arial;color:#172117}header{background:#1f6b3a;color:white;padding:18px;position:sticky;top:0}main{padding:12px;max-width:700px;margin:auto}.card{background:white;border-radius:15px;padding:15px;margin:10px 0;box-shadow:0 2px 8px #0001}h1{font-size:22px;margin:0}h2{font-size:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.k{font-size:21px;font-weight:bold}.l{font-size:12px;color:#69736b}input{width:100%;padding:11px;box-sizing:border-box;border:1px solid #ccd5cc;border-radius:9px;margin:4px 0 9px;font-size:16px}button{padding:12px 15px;border:0;border-radius:10px;background:#1f6b3a;color:white;font-weight:bold;margin:3px}.muted{font-size:12px;color:#69736b}@media(max-width:430px){.grid{grid-template-columns:1fr 1fr}}
+</style></head>
+<body><header><h1>🐔 Poultry Farm Hisaab</h1><small>Daily Farm Management</small></header>
+<main>
+<div class="card"><h2>📊 Dashboard</h2><div class="grid">
+<div><span class="l">Live Birds</span><div class="k" id="live">0</div></div>
+<div><span class="l">Mortality</span><div class="k" id="mortp">0%</div></div>
+<div><span class="l">Feed Stock</span><div class="k" id="stock">0 kg</div></div>
+<div><span class="l">Feed Used</span><div class="k" id="feedu">0 kg</div></div>
+<div><span class="l">FCR</span><div class="k" id="fcr">0.00</div></div>
+<div><span class="l">CFCR</span><div class="k" id="cfcr">0.00</div></div>
+<div><span class="l">Total Cost</span><div class="k" id="cost">₹0</div></div>
+<div><span class="l">Profit/Loss</span><div class="k" id="pl">₹0</div></div>
+</div></div>
+
+<div class="card"><h2>📅 Daily Entry</h2>
+<label>Batch</label><input id="batch" placeholder="Batch 01">
+<div class="grid">
+<div><label>Opening Birds</label><input id="open" type="number"></div>
+<div><label>Mortality</label><input id="mort" type="number"></div>
+<div><label>Sold/Transfer</label><input id="sold" type="number"></div>
+<div><label>Feed Used (kg)</label><input id="feed" type="number" step=".01"></div>
+<div><label>Weight Gain (kg)</label><input id="gain" type="number" step=".01"></div>
+<div><label>Cumulative Feed</label><input id="cf" type="number" step=".01"></div>
+<div><label>Cumulative Weight Gain</label><input id="cg" type="number" step=".01"></div>
+</div></div>
+
+<div class="card"><h2>🌾 Feed Stock</h2><div class="grid">
+<div><label>Opening Stock kg</label><input id="fopen" type="number" step=".01"></div>
+<div><label>Purchase kg</label><input id="fbuy" type="number" step=".01"></div>
+<div><label>Feed Rate ₹/kg</label><input id="frate" type="number" step=".01"></div>
+</div></div>
+
+<div class="card"><h2>💰 Cost</h2><div class="grid">
+<div><label>Medicine ₹</label><input id="med" type="number"></div>
+<div><label>Labour ₹</label><input id="lab" type="number"></div>
+<div><label>Electricity/Water ₹</label><input id="elec" type="number"></div>
+<div><label>Other ₹</label><input id="other" type="number"></div>
+</div></div>
+
+<div class="card"><h2>💵 Sale</h2><div class="grid">
+<div><label>Bird Sale ₹</label><input id="bsale" type="number"></div>
+<div><label>Egg Sale ₹</label><input id="esale" type="number"></div>
+<div><label>Other Sale ₹</label><input id="osale" type="number"></div>
+</div></div>
+
+<button onclick="save()">💾 Save Daily Hisaab</button>
+<button onclick="share()">📤 Share Report</button>
+<div id="msg"></div>
+</main>
+<script>
+const ids=['batch','open','mort','sold','feed','gain','cf','cg','fopen','fbuy','frate','med','lab','elec','other','bsale','esale','osale'];
+const n=i=>Number(document.getElementById(i).value)||0;
+function calc(){
+let open=n('open'),mort=n('mort'),sold=n('sold'),feed=n('feed'),gain=n('gain');
+let live=Math.max(0,open-mort-sold),mp=open?mort/open*100:0,stock=Math.max(0,n('fopen')+n('fbuy')-feed);
+let fcr=gain?feed/gain:0,cfcr=n('cg')?n('cf')/n('cg'):0;
+let cost=feed*n('frate')+n('med')+n('lab')+n('elec')+n('other'),sale=n('bsale')+n('esale')+n('osale'),pl=sale-cost;
+for(const [id,val] of [['live',live],['mortp',mp.toFixed(2)+'%'],['stock',stock.toFixed(2)+' kg'],['feedu',feed.toFixed(2)+' kg'],['fcr',fcr.toFixed(2)],['cfcr',cfcr.toFixed(2)],['cost','₹'+cost.toFixed(0)],['pl','₹'+pl.toFixed(0)]])document.getElementById(id).textContent=val;
+return {live,mp,stock,fcr,cfcr,cost,sale,pl};
+}
+ids.forEach(i=>document.getElementById(i).addEventListener('input',calc));
+function save(){let d={};ids.forEach(i=>d[i]=i==='batch'?document.getElementById(i).value:n(i));d.result=calc();let a=JSON.parse(localStorage.poultry||'[]');a.push(d);localStorage.poultry=JSON.stringify(a);document.getElementById('msg').textContent='✅ Hisaab save ho gaya';}
+async function share(){let r=calc();let t=`Poultry Farm Report\nLive Birds: ${r.live}\nMortality: ${r.mp.toFixed(2)}%\nFeed Stock: ${r.stock.toFixed(2)} kg\nFCR: ${r.fcr.toFixed(2)}\nCFCR: ${r.cfcr.toFixed(2)}\nCost: ₹${r.cost.toFixed(0)}\nSales: ₹${r.sale.toFixed(0)}\nProfit/Loss: ₹${r.pl.toFixed(0)}`;if(navigator.share)await navigator.share({title:'Poultry Farm Hisaab',text:t});else navigator.clipboard.writeText(t);document.getElementById('msg').textContent='📤 Report ready';}
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+calc();
+</script></body></html>

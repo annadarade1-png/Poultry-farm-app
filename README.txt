@@ -1,0 +1,1 @@
+Mobile PWA. Host these files on any HTTPS web hosting. Open index.html in Chrome and use browser menu > Add to Home screen / Install app.
